@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tradebeyond.backend.mapper.ProductCategoryDao">
+  <resultMap id="BaseResultMap" type="com.tradebeyond.backend.bo.ProductCategoryBo">
+    <id column="category_id" jdbcType="BIGINT" property="categoryId" />
+    <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
+    <result column="tax_rate" jdbcType="DECIMAL" property="taxRate" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    category_id, category_name, tax_rate
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from product_category
+    where category_id = #{categoryId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from product_category
+    where category_id = #{categoryId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="category_id" keyProperty="categoryId" parameterType="com.tradebeyond.backend.domain.ProductCategory" useGeneratedKeys="true">
+    insert into product_category (category_name, tax_rate)
+    values (#{categoryName,jdbcType=VARCHAR}, #{taxRate,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" keyColumn="category_id" keyProperty="categoryId" parameterType="com.tradebeyond.backend.domain.ProductCategory" useGeneratedKeys="true">
+    insert into product_category
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="categoryName != null">
+        category_name,
+      </if>
+      <if test="taxRate != null">
+        tax_rate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="categoryName != null">
+        #{categoryName,jdbcType=VARCHAR},
+      </if>
+      <if test="taxRate != null">
+        #{taxRate,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.tradebeyond.backend.domain.ProductCategory">
+    update product_category
+    <set>
+      <if test="categoryName != null">
+        category_name = #{categoryName,jdbcType=VARCHAR},
+      </if>
+      <if test="taxRate != null">
+        tax_rate = #{taxRate,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where category_id = #{categoryId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.tradebeyond.backend.domain.ProductCategory">
+    update product_category
+    set category_name = #{categoryName,jdbcType=VARCHAR},
+      tax_rate = #{taxRate,jdbcType=DECIMAL}
+    where category_id = #{categoryId,jdbcType=BIGINT}
+  </update>
+</mapper>
