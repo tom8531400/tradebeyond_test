@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/tradebeyond_db?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    stream:
+      username: guest
+      password: guest
+    publisher-returns: true #??return?? ??????????????
+    publisher-confirm-type: correlated #??confirm?? ????correlated ?? callback ? correlationData
+    connection-timeout: 10
+
+    template:
+      retry: #????
+        max-attempts: 3
+        enabled: true
+        multiplier: 1
+        initial-interval: 1000ms
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: manual #????ack
+        prefetch: 10
+
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  port: 8080
+
