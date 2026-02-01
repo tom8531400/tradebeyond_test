@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Slf4j
@@ -99,11 +100,12 @@ public class ApiController {
      * @return 用戶訂單
      */
     @RequestMapping(value = "/Order/{userId}", method = RequestMethod.GET)
-    public Result<List<OrdersVo>> getUserOrders(@NonNull @PathVariable("userId") Long userId) {
+    public Result<List<OrdersVo>> getUserOrders(@NonNull @PathVariable("userId") Long userId, HttpServletRequest request) {
         log.info("Receive get user orders, userId={}", userId);
 
-        return Result.success(apiService.getUserOrders(userId));
+        return Result.success(apiService.getUserOrders(userId, request));
 
     }
+
 
 }

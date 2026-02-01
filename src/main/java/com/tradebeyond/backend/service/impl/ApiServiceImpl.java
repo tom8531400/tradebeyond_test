@@ -1,29 +1,29 @@
 package com.tradebeyond.backend.service.impl;
 
-import com.tradebeyond.backend.bo.OrderBo;
-import com.tradebeyond.backend.bo.ProductBo;
-import com.tradebeyond.backend.bo.UsersBo;
-import com.tradebeyond.backend.enums.ProductCategoryEnum;
-import com.tradebeyond.backend.enums.StatusCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradebeyond.backend.bo.*;
+import com.tradebeyond.backend.enums.*;
 import com.tradebeyond.backend.exception.BusinessException;
 import com.tradebeyond.backend.factory.product.ProductFactory;
 import com.tradebeyond.backend.mapper.OrdersDao;
+import com.tradebeyond.backend.mapper.OutboxEventDao;
 import com.tradebeyond.backend.mapper.ProductDao;
 import com.tradebeyond.backend.mapper.UsersDao;
+import com.tradebeyond.backend.redis.RedisUtils;
 import com.tradebeyond.backend.service.ApiService;
 import com.tradebeyond.backend.vo.BaseResp;
 import com.tradebeyond.backend.vo.OrdersVo;
 import com.tradebeyond.backend.vo.ProductVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,9 +37,30 @@ public class ApiServiceImpl implements ApiService {
     @Autowired
     private OrdersDao ordersDao;
     @Autowired
+    private OutboxEventDao outboxEventDao;
+    @Autowired
     private TransactionTemplate transactionTemplate;
     @Autowired
     private Map<String, ProductFactory> productFactoryMap;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private RedisUtils redisUtils;
+
+
+    private static final String LUA_CACHE_USER_KEY =
+            "local count = redis.call('INCR', KEYS[1]) " +
+                    "if count == 1 then redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1])) end " +
+                    "if count > tonumber(ARGV[2]) then return 0 " +
+                    "else return 1 end";
+    private static final DefaultRedisScript<Long> CACHE_USER_SCRIPT_LUA;
+    static{
+        CACHE_USER_SCRIPT_LUA = new DefaultRedisScript<>();
+        CACHE_USER_SCRIPT_LUA.setScriptText(LUA_CACHE_USER_KEY);
+        CACHE_USER_SCRIPT_LUA.setResultType(Long.class);
+        CACHE_USER_SCRIPT_LUA.afterPropertiesSet();
+    }
+
 
     @Override
     public ProductVo getProduct(Long productId) {
@@ -53,6 +74,7 @@ public class ApiServiceImpl implements ApiService {
         Long productId = orderBo.getProductId();
         Integer orderAmount = orderBo.getOrderAmount();
 
+        // 校驗參數
         if (userId == null || productId == null || orderAmount == null || orderAmount <= 0) {
             log.error("userId or productId is null or orderAmount is null");
             throw new BusinessException(StatusCode.PARAMS_INVALID.getCode());
@@ -60,11 +82,48 @@ public class ApiServiceImpl implements ApiService {
         checkUser(userId);
         checkProduct(productId);
 
-        int insert = ordersDao.insert(orderBo);
-        if (insert != 1) {
-            log.error("Create order failed, insert count={}, order={}", insert, orderBo);
-            throw new BusinessException(StatusCode.ORDER_CREATE_FAILED.getCode());
-        }
+        // 處理事務
+        transactionTemplate.executeWithoutResult(status -> {
+            // 存入主訂單
+            int insert = ordersDao.insert(orderBo);
+            if (insert != 1) {
+                log.error("Create order failed");
+                throw new BusinessException(StatusCode.ORDER_CREATE_FAILED.getCode());
+            }
+            // 構建outbox
+            OutboxEventBo bo = new OutboxEventBo();
+            String uuid = UUID.randomUUID().toString();
+
+            bo.setEventId(uuid);
+            bo.setOrderId(orderBo.getOrderId());
+            bo.setUserId(userId);
+            bo.setRetryCount(RetryEnum.NONE.getCount()); // 初始次數 = 0
+            bo.setEventType(EventTypeEnum.ORDER_CREATED.getValue()); // 事件 = 訂單建立
+            bo.setStatus(OutBoxStatusEnum.NEW.getCode()); // 狀態 = 待發送
+
+            Payload payload = new Payload();
+            payload.setOrderId(orderBo.getOrderId());
+            payload.setUserId(userId);
+            payload.setType(PayloadEnum.ORDER_CREATED.getCode());
+            String message;
+            try {
+                message = objectMapper.writeValueAsString(payload);
+            } catch (JsonProcessingException e) {
+                throw new BusinessException(StatusCode.FAIL.getCode());
+            }
+            bo.setMessage(message);
+            Date date = new Date();
+            bo.setNextRetryAt(date);
+            bo.setCreateTime(date);
+            bo.setUpdateTime(date);
+
+            // 存入outbox
+            int outbox = outboxEventDao.insert(bo);
+            if (outbox != 1) {
+                log.error("Create outbox failed");
+                throw new BusinessException(StatusCode.ORDER_OUTBOX_CREATE_FAILED.getCode());
+            }
+        });
         return BaseResp.success();
     }
 
@@ -111,7 +170,17 @@ public class ApiServiceImpl implements ApiService {
 
 
     @Override
-    public List<OrdersVo> getUserOrders(Long userId) {
+    public List<OrdersVo> getUserOrders(Long userId, HttpServletRequest request) {
+        // 限流每個用戶一小時不能超過500次訪問
+        String path = request.getRequestURI();
+
+        final String cacheUserKey = RedisEnum.CACHE_USER_KEY.getKey() + ":" + path + ":" + userId;
+        Long aLong = redisUtils.cacheUserCount(CACHE_USER_SCRIPT_LUA, cacheUserKey, 3600, 500);
+        if(aLong != null && aLong == 0) {
+            log.warn("The user:{} has exceeded 500 requests in one hour", userId);
+            throw new BusinessException(StatusCode.FAIL.getCode());
+        }
+
         checkUser(userId);
 
         List<OrdersVo> resp = new ArrayList<>();

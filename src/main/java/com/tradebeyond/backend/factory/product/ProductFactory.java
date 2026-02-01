@@ -9,5 +9,4 @@ public interface ProductFactory {
 
     BigDecimal calculateTotalCost(ProductBo product, OrderBo orderBo);
 
-
 }
