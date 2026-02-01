@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tradebeyond.backend.mapper.ProductDao">
+  <resultMap id="BaseResultMap" type="com.tradebeyond.backend.bo.ProductBo">
+    <id column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="product_category_id" jdbcType="BIGINT" property="productCategoryId" />
+    <result column="unit_price" jdbcType="DECIMAL" property="unitPrice" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    product_id, product_category_id, unit_price
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from product
+    where product_id = #{productId,jdbcType=BIGINT}
+  </select>
+  <select id="selectAllByProductId" resultType="com.tradebeyond.backend.bo.ProductBo">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM product
+    WHERE product_id IN
+    <foreach collection="list" item="it" open="(" separator="," close=")">
+      #{it}
+    </foreach>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from product
+    where product_id = #{productId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="product_id" keyProperty="productId" parameterType="com.tradebeyond.backend.domain.Product" useGeneratedKeys="true">
+    insert into product (product_category_id, unit_price)
+    values (#{productCategoryId,jdbcType=BIGINT}, #{unitPrice,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" keyColumn="product_id" keyProperty="productId" parameterType="com.tradebeyond.backend.domain.Product" useGeneratedKeys="true">
+    insert into product
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="productCategoryId != null">
+        product_category_id,
+      </if>
+      <if test="unitPrice != null">
+        unit_price,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="productCategoryId != null">
+        #{productCategoryId,jdbcType=BIGINT},
+      </if>
+      <if test="unitPrice != null">
+        #{unitPrice,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.tradebeyond.backend.domain.Product">
+    update product
+    <set>
+      <if test="productCategoryId != null">
+        product_category_id = #{productCategoryId,jdbcType=BIGINT},
+      </if>
+      <if test="unitPrice != null">
+        unit_price = #{unitPrice,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where product_id = #{productId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.tradebeyond.backend.domain.Product">
+    update product
+    set product_category_id = #{productCategoryId,jdbcType=BIGINT},
+      unit_price = #{unitPrice,jdbcType=DECIMAL}
+    where product_id = #{productId,jdbcType=BIGINT}
+  </update>
+</mapper>

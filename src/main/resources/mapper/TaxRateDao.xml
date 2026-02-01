@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tradebeyond.backend.mapper.TaxRateDao">
+  <resultMap id="BaseResultMap" type="com.tradebeyond.backend.domain.TaxRate">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="event_id" jdbcType="VARCHAR" property="eventId" />
+    <result column="region" jdbcType="VARCHAR" property="region" />
+    <result column="rate" jdbcType="DECIMAL" property="rate" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, event_id, region, rate, version, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from tax_rate
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="countByVersion" resultType="java.lang.Integer">
+    SELECT COUNT(1)
+    FROM tax_rate
+    WHERE version &gt; #{version}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from tax_rate
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tradebeyond.backend.bo.TaxRateBo" useGeneratedKeys="true">
+    insert into tax_rate (event_id, region, rate, 
+      version, create_time)
+    values (#{eventId,jdbcType=VARCHAR}, #{region,jdbcType=VARCHAR}, #{rate,jdbcType=DECIMAL}, 
+      #{version,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tradebeyond.backend.domain.TaxRate" useGeneratedKeys="true">
+    insert into tax_rate
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="eventId != null">
+        event_id,
+      </if>
+      <if test="region != null">
+        region,
+      </if>
+      <if test="rate != null">
+        rate,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="eventId != null">
+        #{eventId,jdbcType=VARCHAR},
+      </if>
+      <if test="region != null">
+        #{region,jdbcType=VARCHAR},
+      </if>
+      <if test="rate != null">
+        #{rate,jdbcType=DECIMAL},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <insert id="batchInsertTaxRate">
+    INSERT INTO tax_rate
+    (event_id, region, rate, version, create_time)
+    VALUES
+    <foreach collection="list" item="it" separator=",">
+        (
+        #{it.eventId},
+        #{it.region},
+        #{it.rate},
+        #{it.version},
+        #{it.createTime}
+        )
+    </foreach>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.tradebeyond.backend.domain.TaxRate">
+    update tax_rate
+    <set>
+      <if test="eventId != null">
+        event_id = #{eventId,jdbcType=VARCHAR},
+      </if>
+      <if test="region != null">
+        region = #{region,jdbcType=VARCHAR},
+      </if>
+      <if test="rate != null">
+        rate = #{rate,jdbcType=DECIMAL},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.tradebeyond.backend.domain.TaxRate">
+    update tax_rate
+    set event_id = #{eventId,jdbcType=VARCHAR},
+      region = #{region,jdbcType=VARCHAR},
+      rate = #{rate,jdbcType=DECIMAL},
+      version = #{version,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
