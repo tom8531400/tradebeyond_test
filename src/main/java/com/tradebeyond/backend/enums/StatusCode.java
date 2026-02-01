@@ -13,10 +13,10 @@ public enum StatusCode {
     ORDER_CREATE_FAILED(5, "order create failed"),
     ORDER_UPDATE_FAILED(6, "order update failed"),
     USER_DELETE_FAILED(7, "user delete failed"),
+    ORDER_OUTBOX_CREATE_FAILED(8, "order outbox create failed"),
 
     PARAMS_INVALID(10, "paramsInvalid"),
-    ERROR(11, "error")
-    ;
+    ERROR(11, "error");
 
     private final Integer code;
 

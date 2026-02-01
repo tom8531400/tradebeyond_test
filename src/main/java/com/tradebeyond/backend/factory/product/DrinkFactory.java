@@ -14,16 +14,12 @@ import java.math.BigDecimal;
 
 @Slf4j
 @Component
-public class FoodFactory implements ProductFactory {
+public class DrinkFactory implements ProductFactory{
     @Autowired
     private ProductCategoryDao productCategoryDao;
 
-
-
-
     @Override
     public BigDecimal calculateTotalCost(ProductBo product, OrderBo orderBo) {
-        // order_amount × product.unit_price × productCategory (1 + tax_rate)
         Integer orderAmount = orderBo.getOrderAmount();
         BigDecimal unitPrice = product.getUnitPrice();
 
@@ -36,5 +32,6 @@ public class FoodFactory implements ProductFactory {
         BigDecimal taxRate = productCategoryBo.getTaxRate();
 
         return BigDecimal.valueOf(orderAmount).multiply(unitPrice).multiply(BigDecimal.ONE.add(taxRate));
+
     }
 }

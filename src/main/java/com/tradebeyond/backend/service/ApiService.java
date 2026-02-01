@@ -5,6 +5,7 @@ import com.tradebeyond.backend.vo.BaseResp;
 import com.tradebeyond.backend.vo.OrdersVo;
 import com.tradebeyond.backend.vo.ProductVo;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface ApiService {
@@ -19,5 +20,5 @@ public interface ApiService {
 
     BaseResp deleteUserAndOrder(Long userId);
 
-    List<OrdersVo> getUserOrders(Long userId);
+    List<OrdersVo> getUserOrders(Long userId, HttpServletRequest request);
 }

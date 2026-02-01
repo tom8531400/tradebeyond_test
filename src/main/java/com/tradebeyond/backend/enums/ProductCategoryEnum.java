@@ -5,7 +5,9 @@ import lombok.Getter;
 @Getter
 public enum ProductCategoryEnum {
 
-    FOOD(1, "foodFactory");
+    FOOD(1, "foodFactory"),
+    DRINK(2, "drinkFactory");
+
 
     private final long code;
 
