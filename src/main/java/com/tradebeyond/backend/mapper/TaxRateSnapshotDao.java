@@ -3,7 +3,10 @@ package com.tradebeyond.backend.mapper;
 import com.tradebeyond.backend.bo.TaxRateSnapshotBo;
 import com.tradebeyond.backend.domain.TaxRateSnapshot;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Date;
 
 @Mapper
 public interface TaxRateSnapshotDao {
@@ -18,4 +21,6 @@ public interface TaxRateSnapshotDao {
     int updateByPrimaryKeySelective(TaxRateSnapshot record);
 
     int updateByPrimaryKey(TaxRateSnapshot record);
+
+    int insertIfVersionMatch(@Param("eventId") String eventId, @Param("version") Integer version, @Param("createdAt") Date createdAt);
 }

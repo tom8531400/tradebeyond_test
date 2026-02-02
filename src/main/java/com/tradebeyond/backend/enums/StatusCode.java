@@ -14,6 +14,7 @@ public enum StatusCode {
     ORDER_UPDATE_FAILED(6, "order update failed"),
     USER_DELETE_FAILED(7, "user delete failed"),
     ORDER_OUTBOX_CREATE_FAILED(8, "order outbox create failed"),
+    LOCK_FAILED(9, "lock failed"),
 
     PARAMS_INVALID(10, "paramsInvalid"),
     ERROR(11, "error");
