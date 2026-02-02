@@ -19,7 +19,7 @@ public class RedisUtils {
 
     public Long addSetValue(String key, Object value) {
         SetOperations<String, Object> opsForSet = redisTemplate.opsForSet();
-        return opsForSet.add(key, value);
+        return opsForSet.add(key, value, 1, TimeUnit.DAYS);
     }
 
     public Object getLatestVersion(String key) {

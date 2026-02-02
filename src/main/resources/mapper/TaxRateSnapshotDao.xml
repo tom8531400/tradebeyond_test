@@ -51,7 +51,16 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.tradebeyond.backend.domain.TaxRateSnapshot">
+  <insert id="insertIfVersionMatch">
+    INSERT INTO tax_rate_snapshot (event_id, version, created_at)
+        SELECT #{eventId}, #{version}, #{createdAt}
+        FROM dual
+        WHERE #{version} > (
+            SELECT COALESCE(MAX(version), 0)
+            FROM tax_rate_snapshot
+            )
+  </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.tradebeyond.backend.domain.TaxRateSnapshot">
     update tax_rate_snapshot
     <set>
       <if test="eventId != null">

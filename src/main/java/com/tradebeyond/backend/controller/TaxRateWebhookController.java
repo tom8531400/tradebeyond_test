@@ -22,7 +22,7 @@ public class TaxRateWebhookController {
     private TaxRateWebhookService taxRateWebhookService;
 
     @RequestMapping(value = "webhook/taxRates", method = RequestMethod.POST)
-    public Result<BaseResp> taxRateWebhook(@RequestBody TaxRate taxRate, HttpServletRequest httpServletRequest) throws JsonProcessingException {
+    public Result<BaseResp> taxRateWebhook(@RequestBody TaxRate taxRate, HttpServletRequest httpServletRequest) throws JsonProcessingException, InterruptedException {
         log.info("Receive webhook taxRates, taxRate={}", taxRate);
 
         return Result.success(taxRateWebhookService.taxRateWebhook(taxRate.toBo(), httpServletRequest));
