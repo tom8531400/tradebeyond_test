@@ -6,16 +6,18 @@ import lombok.Getter;
 
 @Getter
 public class BusinessException extends RuntimeException {
-    private final int code;
+    private final StatusCode statusCode;
+    private Object data;
 
-    public BusinessException(int code) {
-        super(StatusCode.FAIL.getMessage());
-        this.code = code;
+    public BusinessException(StatusCode statusCode) {
+        super(statusCode.getMessage());
+        this.statusCode = statusCode;
     }
 
-    public BusinessException(int code, Exception e) {
-        super(StatusCode.FAIL.getMessage(), e);
-        this.code = code;
+    public BusinessException(StatusCode statusCode, Object data) {
+        super(statusCode.getMessage());
+        this.statusCode = statusCode;
+        this.data = data;
     }
 
 }

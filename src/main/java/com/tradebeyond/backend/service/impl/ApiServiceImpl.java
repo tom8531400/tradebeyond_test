@@ -77,7 +77,7 @@ public class ApiServiceImpl implements ApiService {
         // 校驗參數
         if (userId == null || productId == null || orderAmount == null || orderAmount <= 0) {
             log.error("userId or productId is null or orderAmount is null");
-            throw new BusinessException(StatusCode.PARAMS_INVALID.getCode());
+            throw new BusinessException(StatusCode.PARAMS_INVALID);
         }
         checkUser(userId);
         checkProduct(productId);
@@ -88,7 +88,7 @@ public class ApiServiceImpl implements ApiService {
             int insert = ordersDao.insert(orderBo);
             if (insert != 1) {
                 log.error("Create order failed");
-                throw new BusinessException(StatusCode.ORDER_CREATE_FAILED.getCode());
+                throw new BusinessException(StatusCode.ORDER_CREATE_FAILED);
             }
             // 構建outbox
             OutboxEventBo bo = new OutboxEventBo();
@@ -109,7 +109,7 @@ public class ApiServiceImpl implements ApiService {
             try {
                 message = objectMapper.writeValueAsString(payload);
             } catch (JsonProcessingException e) {
-                throw new BusinessException(StatusCode.FAIL.getCode());
+                throw new BusinessException(StatusCode.FAIL);
             }
             bo.setMessage(message);
             Date date = new Date();
@@ -121,7 +121,7 @@ public class ApiServiceImpl implements ApiService {
             int outbox = outboxEventDao.insert(bo);
             if (outbox != 1) {
                 log.error("Create outbox failed");
-                throw new BusinessException(StatusCode.ORDER_OUTBOX_CREATE_FAILED.getCode());
+                throw new BusinessException(StatusCode.ORDER_OUTBOX_CREATE_FAILED);
             }
         });
         return BaseResp.success();
@@ -135,7 +135,7 @@ public class ApiServiceImpl implements ApiService {
         int updated = ordersDao.updateByPrimaryKeySelective(orderBo);
         if (updated != 1) {
             log.error("Update order failed, update count={}, order={}", updated, orderBo);
-            throw new BusinessException(StatusCode.ORDER_UPDATE_FAILED.getCode());
+            throw new BusinessException(StatusCode.ORDER_UPDATE_FAILED);
         }
         return BaseResp.success();
     }
@@ -162,7 +162,7 @@ public class ApiServiceImpl implements ApiService {
             int delUserRows = usersDao.deleteByPrimaryKey(userId);
             if (delUserRows != 1) {
                 log.error("delete user failed, delete count={}, user={}", delUserRows, userId);
-                throw new BusinessException(StatusCode.USER_DELETE_FAILED.getCode());
+                throw new BusinessException(StatusCode.USER_DELETE_FAILED);
             }
         });
         return BaseResp.success();
@@ -178,7 +178,7 @@ public class ApiServiceImpl implements ApiService {
         Long aLong = redisUtils.cacheUserCount(CACHE_USER_SCRIPT_LUA, cacheUserKey, 3600, 500);
         if(aLong != null && aLong == 0) {
             log.warn("The user:{} has exceeded 500 requests in one hour", userId);
-            throw new BusinessException(StatusCode.FAIL.getCode());
+            throw new BusinessException(StatusCode.FAIL);
         }
 
         checkUser(userId);
@@ -192,7 +192,7 @@ public class ApiServiceImpl implements ApiService {
             List<ProductBo> productBos = productDao.selectAllByProductId(productIds);
             if (productBos == null || productBos.isEmpty()) {
                 log.error("productBos is empty");
-                throw new BusinessException(StatusCode.PRODUCT_NOT_FOUND.getCode());
+                throw new BusinessException(StatusCode.PRODUCT_NOT_FOUND);
             }
             Map<Long, ProductBo> productBoMap = productBos.stream().collect(Collectors.toMap(ProductBo::getProductId, Function.identity()));
 
@@ -219,7 +219,7 @@ public class ApiServiceImpl implements ApiService {
         UsersBo usersBo = usersDao.selectByPrimaryKey(userId);
         if (usersBo == null) {
             log.warn("user not exist, userId={}", userId);
-            throw new BusinessException(StatusCode.USER_NOT_FOUND.getCode());
+            throw new BusinessException(StatusCode.USER_NOT_FOUND);
         }
         return usersBo;
     }
@@ -229,7 +229,7 @@ public class ApiServiceImpl implements ApiService {
         ProductBo productBo = productDao.selectByPrimaryKey(productId);
         if (productBo == null) {
             log.warn("product not exist, productId={}", productId);
-            throw new BusinessException(StatusCode.PRODUCT_NOT_FOUND.getCode());
+            throw new BusinessException(StatusCode.PRODUCT_NOT_FOUND);
         }
         return productBo;
     }
@@ -239,7 +239,7 @@ public class ApiServiceImpl implements ApiService {
         OrderBo orders = ordersDao.selectByPrimaryKey(orderId);
         if (orders == null) {
             log.warn("order not exist, orderId={}", orderId);
-            throw new BusinessException(StatusCode.ORDER_NOT_FOUND.getCode());
+            throw new BusinessException(StatusCode.ORDER_NOT_FOUND);
         }
         return orders;
     }
