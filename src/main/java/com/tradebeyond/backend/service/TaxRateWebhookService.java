@@ -10,5 +10,5 @@ import java.util.List;
 public interface TaxRateWebhookService {
 
 
-    BaseResp taxRateWebhook(TaxRateBo taxRate, HttpServletRequest httpServletRequest) throws JsonProcessingException;
+    BaseResp taxRateWebhook(TaxRateBo taxRate, HttpServletRequest httpServletRequest) throws JsonProcessingException, InterruptedException;
 }
