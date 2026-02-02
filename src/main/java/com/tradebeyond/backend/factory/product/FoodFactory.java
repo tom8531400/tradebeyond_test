@@ -31,7 +31,7 @@ public class FoodFactory implements ProductFactory {
         ProductCategoryBo productCategoryBo = productCategoryDao.selectByPrimaryKey(productCategoryId);
         if(productCategoryBo == null) {
             log.error("productCategoryBo is null");
-            throw new BusinessException(StatusCode.PARAMS_INVALID.getCode());
+            throw new BusinessException(StatusCode.PARAMS_INVALID);
         }
         BigDecimal taxRate = productCategoryBo.getTaxRate();
 

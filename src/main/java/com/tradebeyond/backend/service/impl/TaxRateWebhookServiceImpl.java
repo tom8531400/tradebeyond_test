@@ -52,7 +52,7 @@ public class TaxRateWebhookServiceImpl implements TaxRateWebhookService {
         boolean b = lock.tryLock(2, TimeUnit.SECONDS);
         if (!b) {
             log.warn("event id {} lock fail", eventId);
-            throw new BusinessException(StatusCode.LOCK_FAILED.getCode());
+            throw new BusinessException(StatusCode.LOCK_FAILED);
         }
 
         try {
@@ -75,7 +75,7 @@ public class TaxRateWebhookServiceImpl implements TaxRateWebhookService {
                     int insert = taxRateSnapshotDao.insertIfVersionMatch(eventId, version, new Date());
                     if (insert != 1) {
                         log.error("insert :{} send repeatedly", insert);
-                        throw new BusinessException(StatusCode.FAIL.getCode());
+                        throw new BusinessException(StatusCode.FAIL);
                     }
                     // 批次insert稅務
                     int updated = taxRateDao.batchInsertTaxRate(list);
@@ -85,12 +85,12 @@ public class TaxRateWebhookServiceImpl implements TaxRateWebhookService {
                     log.warn("update :{} is save", updated);
                 } catch (Exception e) {
                     log.error("transaction error", e);
-                    throw new BusinessException(StatusCode.FAIL.getCode());
+                    throw new BusinessException(StatusCode.FAIL);
                 }
             });
         } catch (Exception e) {
             log.error("taxRateWebhook event id {} is fail", eventId, e);
-            throw new BusinessException(StatusCode.FAIL.getCode(), e);
+            throw new BusinessException(StatusCode.FAIL, e);
         } finally {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
